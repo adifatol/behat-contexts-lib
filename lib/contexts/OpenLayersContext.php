@@ -53,12 +53,20 @@ class OpenLayersContext extends BehatContext
 	// 	private function waitForEvent();
 
 	/**
+	 * @Then /^I should see the map should be centered on lat "([^"]*)" and lon "([^"]*)"$/
+	 */
+	public function iShouldSeetheMapShouldBeCenteredOnLatAndLon($lat, $lon){
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getCenter().transform(" . self::MAP_OBJ . ".projection, " . self::MAP_OBJ .".displayProjection).lat ==={$lat}");
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getCenter().transform(" . self::MAP_OBJ . ".projection, " . self::MAP_OBJ .".displayProjection).lon ==={$lon}");
+	}
+	
+	/**
 	 * @Given /^I center the map on lon "([^"]*)" and lat "([^"]*)"$/
 	 */
 	public function iCenterTheMapOnLonAndLat($lon, $lat)
 	{
 		$event = 'moveend';
-
+//
 		$this->prepareForMapEvent($event);
 		$this->getMainContext()->getSession()->executeScript(self::MAP_OBJ.".setCenter(
 				new OpenLayers.LonLat($lon, $lat).transform(".self::MAP_OBJ.".displayProjection, ".self::MAP_OBJ.".projection))");
@@ -111,5 +119,25 @@ JS;
 		$this->getMainContext()->getSession()->executeScript($script);
 
 		$this->getMainContext()->iWait(150000);
+	}
+	
+	/**
+	 * @Then /^there should be "([^"]*)" markers on the "([^"]*)" layer$/
+	 */
+	public function thereShouldBeMarkersOnTheLayer($count, $layerName){
+		/* check if layer exists */
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getLayersByName('{$layerName}').length > 0");
+		/* check if the number of markers on the layer is equal to the count parameter */
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getLayersByName('{$layerName}')[0].markers.length ==={$count}");
+}
+	
+	/**
+	 * @then /^there shuld be a "([^"]*) layer visible on the map$/ 
+	 */
+	public function thereShouldBeALayerVisibleOnTheMap($layerName){
+		/* check if layer exists */
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getLayersByName('{$layerName}').length > 0");
+		/* check if the layer is visible */
+		$this->getMainContext()->getSession()->wait(5000, self::MAP_OBJ . ".getLayersByName('{$layerName}')[0].visibility === true");
 	}
 }
